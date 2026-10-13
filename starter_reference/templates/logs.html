@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Sync log{% endblock %}
+{% block content %}
+<h1>Sync log</h1>
+<p class="sub">Every sync, connection test and webhook is recorded here as proof the integration works.</p>
+{% if logs %}
+<div class="wrap"><table>
+<tr><th>Time</th><th>Event</th><th>Status</th><th>Detail</th></tr>
+{% for l in logs %}
+<tr><td>{{ l.time }}</td><td>{{ l.event }}</td><td><span class="tag {{ l.status }}">{{ l.status }}</span></td><td>{{ l.detail }}</td></tr>
+{% endfor %}</table></div>
+{% else %}
+<div class="empty">Nothing logged yet. Run a sync or test the connection from the dashboard.</div>
+{% endif %}
+{% endblock %}

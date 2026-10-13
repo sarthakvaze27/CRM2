@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Customers{% endblock %}
+{% block content %}
+<h1>Customers</h1>
+<p class="sub">Everyone who has placed an order. Segments: VIP spends 3,000 or more, New has one order.</p>
+<form class="row" method="get">
+  <input name="q" value="{{ q }}" placeholder="Search by name or email" aria-label="Search customers">
+  <button>Search</button>
+  {% if q %}<a href="{{ url_for('customers_page') }}">Clear</a>{% endif %}
+</form>
+{% if customers %}
+<div class="wrap"><table>
+<tr><th>Name</th><th>Email</th><th>Segment</th><th class="num">Orders</th><th class="num">Spent</th><th>Last order</th></tr>
+{% for c in customers %}
+<tr><td><a href="{{ url_for('customer_page', cid=c.id) }}">{{ c.first_name }} {{ c.last_name }}</a></td>
+<td>{{ c.email }}</td><td><span class="tag {{ c.segment }}">{{ c.segment }}</span></td>
+<td class="num">{{ c.order_count }}</td><td class="num">{{ c.spent|money }}</td><td>{{ c.last_order|day }}</td></tr>
+{% endfor %}</table></div>
+{% else %}
+<div class="empty">{% if q %}No customers match "{{ q }}".{% else %}No customers yet. Select "Sync from WooCommerce" to import them.{% endif %}</div>
+{% endif %}
+{% endblock %}

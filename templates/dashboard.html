@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Overview · Northstar{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">STORE OVERVIEW</div><h1>Your customer story, at a glance.</h1><p class="sub">A clear view of the people, orders, and revenue behind your store.</p></div><form method="post" action="{{ url_for('test_connection') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="button-secondary">Test connection</button></form></div>
+
+<section class="stats" aria-label="Store metrics">
+  <article class="stat-card"><div class="stat-icon purple">＄</div><div class="stat-label">Total revenue</div><div class="stat-number">{{ stats.revenue|money }}</div><div class="stat-note">Across all synced orders</div></article>
+  <article class="stat-card"><div class="stat-icon green">▤</div><div class="stat-label">Orders</div><div class="stat-number">{{ stats.orders }}</div><div class="stat-note">Average {{ stats.average_order|money }} per order</div></article>
+  <article class="stat-card"><div class="stat-icon amber">♙</div><div class="stat-label">Customers</div><div class="stat-number">{{ stats.customers }}</div><div class="stat-note">Distinct billing profiles</div></article>
+  <article class="stat-card"><div class="stat-icon blue">⟳</div><div class="stat-label">Repeat customers</div><div class="stat-number">{{ stats.repeat_customers }}</div><div class="stat-note">Customers with 2+ orders</div></article>
+</section>
+
+<section class="dashboard-grid">
+  <article class="panel chart-panel"><div class="panel-head"><div><div class="eyebrow">PERFORMANCE</div><h2>Revenue trend</h2><p>Monthly revenue from synced orders</p></div><span class="range-pill">Last 6 months</span></div>
+    <div class="chart" role="img" aria-label="Revenue by month for the past six months">{% for month in revenue_series %}<div class="chart-col"><span class="chart-value">{{ month.total|money }}</span><div class="chart-track"><div class="chart-bar {{ 'current' if loop.last }}" style="height:{{ month.height }}%"></div></div><span class="chart-label">{{ month.label }}</span></div>{% endfor %}</div>
+    <div class="chart-foot"><span><i class="legend-dot"></i>Revenue</span><span>Synced from WooCommerce</span></div>
+  </article>
+  <article class="panel snapshot"><div class="panel-head"><div><div class="eyebrow">STORE HEALTH</div><h2>Quick snapshot</h2></div><span class="health-icon">✦</span></div>
+    <div class="snapshot-row"><span>Average order value</span><b>{{ stats.average_order|money }}</b></div>
+    <div class="snapshot-row"><span>Email activity</span><b>{{ stats.messages }} <small>logged</small></b></div>
+    <div class="snapshot-row"><span>WooCommerce sync</span>{% if last_sync and last_sync[0].status == 'success' %}<b class="text-success">Up to date</b>{% else %}<b class="text-muted">Ready to sync</b>{% endif %}</div>
+    <a class="snapshot-link" href="{{ url_for('logs_page') }}">View store activity <span>→</span></a>
+  </article>
+</section>
+
+<section class="panel table-panel"><div class="panel-head"><div><div class="eyebrow">LATEST ACTIVITY</div><h2>Recent orders</h2><p>Latest purchases synced from your store</p></div><a class="link-button" href="{{ url_for('orders_page') }}">Browse orders <span>→</span></a></div>
+{% if recent_orders %}<div class="table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Status</th><th class="num">Total</th><th>Date</th></tr></thead><tbody>
+{% for o in recent_orders %}<tr><td><span class="order-ref">#{{ o.woo_id }}</span></td><td><a class="table-customer" href="{{ url_for('customer_page', cid=o.customer_id) }}">{{ o.first_name }} {{ o.last_name }}</a></td><td><span class="tag {{ o.status }}">{{ o.status|replace('-', ' ')|title }}</span></td><td class="num amount">{{ o.total|money(o.currency) }}</td><td>{{ o.placed_at|day }}</td></tr>{% endfor %}
+</tbody></table></div>{% else %}<div class="empty">No orders yet. Use <b>Sync store</b> to import orders from WooCommerce.</div>{% endif %}</section>
+
+<section class="bottom-grid"><article class="panel feature-panel"><div class="feature-badge">✦</div><div><h3>Know your best customers</h3><p>Explore VIP, returning, and new customer groups to find the right people for your next campaign.</p><a href="{{ url_for('segments_page') }}">Explore segments <span>→</span></a></div></article>
+<article class="panel feature-panel"><div class="feature-badge mint">✉</div><div><h3>Thoughtful follow-ups</h3><p>Review your email templates and message history. Configure SMTP to send from customer profiles.</p><a href="{{ url_for('workflows_page') }}">Open email workflows <span>→</span></a></div></article></section>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Orders{% endblock %}
+{% block content %}
+<h1>Orders</h1>
+<p class="sub">Order status stays in step with WooCommerce each time you sync or a webhook arrives.</p>
+<form class="row" method="get">
+  <select name="status" aria-label="Filter by status" onchange="this.form.submit()">
+    <option value="">All statuses</option>
+    {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if s==selected }}>{{ s }}</option>{% endfor %}
+  </select>
+</form>
+{% if orders %}
+<div class="wrap"><table>
+<tr><th>Order</th><th>Customer</th><th>Items</th><th>Status</th><th class="num">Total</th><th>Date</th></tr>
+{% for o in orders %}
+<tr><td>#{{ o.woo_id }}</td>
+<td><a href="{{ url_for('customer_page', cid=o.customer_id) }}">{{ o.first_name }} {{ o.last_name }}</a></td>
+<td>{% for i in o["items"]|fromjson %}{{ i.name }} × {{ i.qty }}{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
+<td><span class="tag {{ o.status }}">{{ o.status }}</span></td>
+<td class="num">{{ o.total|money(o.currency) }}</td><td>{{ o.placed_at|day }}</td></tr>
+{% endfor %}</table></div>
+{% else %}
+<div class="empty">No orders to show. Select "Sync from WooCommerce" to import them.</div>
+{% endif %}
+{% endblock %}

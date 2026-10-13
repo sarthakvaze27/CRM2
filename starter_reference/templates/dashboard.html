@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Dashboard</h1>
+<p class="sub">Customers and orders pulled from your WooCommerce store.</p>
+<div class="stats">
+  <div><b>{{ stats.customers }}</b><span>Customers</span></div>
+  <div><b>{{ stats.orders }}</b><span>Orders</span></div>
+  <div><b>{{ stats.revenue|money }}</b><span>Revenue</span></div>
+  <div><b>{{ stats.messages }}</b><span>Messages logged</span></div>
+</div>
+<form method="post" action="{{ url_for('test_connection') }}" class="row"><button class="ghost">Test WooCommerce connection</button></form>
+
+<h2>Recent orders</h2>
+{% if recent_orders %}
+<div class="wrap"><table>
+<tr><th>Order</th><th>Customer</th><th>Status</th><th class="num">Total</th><th>Date</th></tr>
+{% for o in recent_orders %}
+<tr><td>#{{ o.woo_id }}</td>
+<td><a href="{{ url_for('customer_page', cid=o.customer_id) }}">{{ o.first_name }} {{ o.last_name }}</a></td>
+<td><span class="tag {{ o.status }}">{{ o.status }}</span></td>
+<td class="num">{{ o.total|money(o.currency) }}</td><td>{{ o.placed_at|day }}</td></tr>
+{% endfor %}</table></div>
+{% else %}
+<div class="empty">No orders yet. Select "Sync from WooCommerce" to import the orders from your store.</div>
+{% endif %}
+
+<h2>Recent messages</h2>
+{% if recent_messages %}
+<div class="wrap"><table>
+<tr><th>Customer</th><th>Message</th><th>Status</th><th>Time</th></tr>
+{% for m in recent_messages %}
+<tr><td>{{ m.first_name }} {{ m.last_name }}</td><td>{{ m.subject }}</td>
+<td><span class="tag {{ m.status }}">{{ m.status }}</span></td><td>{{ m.sent_at }}</td></tr>
+{% endfor %}</table></div>
+{% else %}
+<div class="empty">No messages yet. Emails are logged here when a new order arrives or when you send one from a customer page.</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}{{ c.first_name }} {{ c.last_name }}{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('customers_page') }}">Back to customers</a></p>
+<h1>{{ c.first_name }} {{ c.last_name }} <span class="tag {{ c.segment }}">{{ c.segment }}</span></h1>
+<p class="sub">{{ c.email }}{% if c.phone %} · {{ c.phone }}{% endif %}{% if c.city %} · {{ c.city }}, {{ c.state }}{% endif %}</p>
+<div class="facts">
+  <div><span>Total spent</span>{{ c.spent|money }}</div>
+  <div><span>Orders</span>{{ c.order_count }}</div>
+  <div><span>Last order</span>{{ c.last_order|day or "None" }}</div>
+</div>
+
+<h2>Send an email</h2>
+<form method="post" action="{{ url_for('customer_email', cid=c.id) }}" class="row">
+  <select name="template" aria-label="Email template">
+    {% for key, label in template_labels.items() %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
+  </select>
+  <button>Send email</button>
+</form>
+
+<h2>Orders</h2>
+{% if orders %}
+<div class="wrap"><table>
+<tr><th>Order</th><th>Items</th><th>Status</th><th class="num">Total</th><th>Date</th></tr>
+{% for o in orders %}
+<tr><td>#{{ o.woo_id }}</td>
+<td>{% for i in o["items"]|fromjson %}{{ i.name }} × {{ i.qty }}{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
+<td><span class="tag {{ o.status }}">{{ o.status }}</span></td>
+<td class="num">{{ o.total|money(o.currency) }}</td><td>{{ o.placed_at|day }}</td></tr>
+{% endfor %}</table></div>
+{% endif %}
+
+<h2>Message history</h2>
+{% if messages %}
+<div class="wrap"><table>
+<tr><th>Subject</th><th>Template</th><th>Status</th><th>Time</th><th>Note</th></tr>
+{% for m in messages %}
+<tr><td>{{ m.subject }}</td><td>{{ template_labels.get(m.template, m.template) }}</td>
+<td><span class="tag {{ m.status }}">{{ m.status }}</span></td><td>{{ m.sent_at }}</td><td>{{ m.note }}</td></tr>
+{% endfor %}</table></div>
+{% else %}
+<div class="empty">No messages sent to this customer yet.</div>
+{% endif %}
+{% endblock %}

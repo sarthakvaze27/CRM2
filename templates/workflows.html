@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Email workflows · Northstar{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">CUSTOMER CARE</div><h1>Email workflows</h1><p class="sub">Ready-to-use messages for the moments that matter.</p></div><span class="connection {{ 'connected' if email_ready else 'disconnected' }}">● &nbsp;{{ 'Email sending configured' if email_ready else 'SMTP setup needed' }}</span></div>
+<div class="workflow-grid">
+{% for key, label in template_labels.items() %}<article class="panel workflow-card"><div class="workflow-symbol">{% if key=='order_confirmation' %}✓{% elif key=='order_shipped' %}↗{% else %}♡{% endif %}</div><div class="eyebrow">{{ 'ORDER UPDATE' if key!='we_miss_you' else 'RE-ENGAGEMENT' }}</div><h2>{{ label }}</h2><p>{% if key=='order_confirmation' %}Reassure a shopper that their purchase is in good hands.{% elif key=='order_shipped' %}Let a customer know their order is on its way.{% else %}Invite a lapsed customer back with a personal note.{% endif %}</p><div class="workflow-meta"><span>{{ stats.messages if stats is defined else 0 }} messages logged</span><a href="{{ url_for('customers_page') }}">Choose a customer →</a></div></article>{% endfor %}
+</div>
+<section class="panel table-panel message-table"><div class="panel-head"><div><div class="eyebrow">RECENT OUTREACH</div><h2>Message history</h2><p>Most recent messages recorded by the CRM</p></div></div>
+{% if messages %}<div class="table-wrap"><table><thead><tr><th>Customer</th><th>Subject</th><th>Status</th><th>Sent</th></tr></thead><tbody>{% for m in messages %}<tr><td>{{ m.first_name }} {{ m.last_name }}</td><td>{{ m.subject }}</td><td><span class="tag {{ m.status }}">{{ m.status|replace('_',' ')|title }}</span></td><td>{{ m.sent_at }}</td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="empty">No messages yet. Choose a customer to preview and send a workflow message.</div>{% endif %}</section>
+{% endblock %}

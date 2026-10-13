@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Segments · Northstar{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">SMART GROUPS</div><h1>Customer segments</h1><p class="sub">Find the right people for a thoughtful follow-up.</p></div><a class="button-secondary" href="{{ url_for('customers_page') }}">All customers →</a></div>
+<div class="segment-grid">
+  <a class="segment-card vip-card" href="{{ url_for('customers_page', segment='VIP') }}"><span class="segment-symbol">✦</span><span class="tag segment-VIP">VIP</span><strong>{{ counts.VIP }}</strong><h2>Your top spenders</h2><p>Customers with $3,000 or more in lifetime spend. Thank them for their loyalty.</p><span class="segment-action">View VIP customers →</span></a>
+  <a class="segment-card returning-card" href="{{ url_for('customers_page', segment='Returning') }}"><span class="segment-symbol">↻</span><span class="tag segment-returning">Returning</span><strong>{{ counts.Returning }}</strong><h2>Coming back for more</h2><p>Customers with multiple orders. Invite them to discover something new.</p><span class="segment-action">View returning customers →</span></a>
+  <a class="segment-card new-card" href="{{ url_for('customers_page', segment='New') }}"><span class="segment-symbol">✳</span><span class="tag segment-New">New</span><strong>{{ counts.New }}</strong><h2>Make a great first impression</h2><p>Customers with one order. A warm welcome can turn first orders into habits.</p><span class="segment-action">View new customers →</span></a>
+</div>
+<p class="privacy-note">Segments update automatically from synced order counts and customer lifetime spend. {{ total }} total customer profiles.</p>
+{% endblock %}

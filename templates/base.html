@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Northstar CRM{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header><div class="bar">
+  <a class="brand" href="{{ url_for('dashboard') }}"><span class="brand-icon">✳</span> Northstar <small>COMMERCE CRM</small></a>
+  <nav>
+    <a href="{{ url_for('dashboard') }}" class="{{ 'on' if request.endpoint=='dashboard' }}">Dashboard</a>
+    <a href="{{ url_for('customers_page') }}" class="{{ 'on' if request.endpoint in ('customers_page','customer_page','export_customers') }}">Customers</a>
+    <a href="{{ url_for('orders_page') }}" class="{{ 'on' if request.endpoint=='orders_page' }}">Orders</a>
+    <a href="{{ url_for('segments_page') }}" class="{{ 'on' if request.endpoint=='segments_page' }}">Segments</a>
+    <a href="{{ url_for('workflows_page') }}" class="{{ 'on' if request.endpoint=='workflows_page' }}">Workflows</a>
+    <a href="{{ url_for('logs_page') }}" class="{{ 'on' if request.endpoint=='logs_page' }}">Activity</a>
+  </nav>
+  <span class="store-pill"><i></i>{{ 'Store connected' if store_connected else 'Setup needed' }}</span>
+  <form method="post" action="{{ url_for('sync') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button>↻ &nbsp;Sync store</button></form>
+</div></header>
+<main>
+{% for cat, msg in get_flashed_messages(with_categories=true) %}
+  <div class="flash {{ cat }}">{{ msg }}</div>
+{% endfor %}
+{% if not store_connected %}<div class="flash info">Connect WooCommerce: copy <code>.env.example</code> to <code>.env</code>, add your REST API read keys, then restart the app.</div>{% endif %}
+{% block content %}{% endblock %}
+</main>
+<script>
+document.querySelectorAll('form[action$="/sync"]').forEach(form=>form.addEventListener('submit',()=>{const b=form.querySelector('button');if(b){b.disabled=true;b.textContent='Syncing…'}}));
+document.querySelectorAll('form[action*="/email"]').forEach(form=>form.addEventListener('submit',e=>{if(!confirm('Send this workflow email to this customer?'))e.preventDefault()}));
+</script>
+</body>
+</html>
