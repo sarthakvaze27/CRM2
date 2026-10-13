@@ -42,12 +42,41 @@ def init():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 event TEXT, detail TEXT, status TEXT, time TEXT
             );
+            CREATE TABLE IF NOT EXISTS admin_users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
             """
         )
         columns = {r[1] for r in c.execute("PRAGMA table_info(customers)")}
         for name in ("address_1", "address_2", "postcode", "country"):
             if name not in columns:
                 c.execute(f"ALTER TABLE customers ADD COLUMN {name} TEXT")
+
+
+def admin_count():
+    with conn() as c:
+        return c.execute("SELECT COUNT(*) FROM admin_users").fetchone()[0]
+
+
+def admin_by_username(username):
+    with conn() as c:
+        row = c.execute("SELECT * FROM admin_users WHERE username=?", (username.lower(),)).fetchone()
+        return dict(row) if row else None
+
+
+def admin_by_id(user_id):
+    with conn() as c:
+        row = c.execute("SELECT * FROM admin_users WHERE id=?", (user_id,)).fetchone()
+        return dict(row) if row else None
+
+
+def create_admin(username, password_hash):
+    with conn() as c:
+        c.execute("INSERT INTO admin_users (username,password_hash,created_at) VALUES (?,?,?)",
+                  (username.lower(), password_hash, now()))
 
 
 def now():

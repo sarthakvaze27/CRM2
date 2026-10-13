@@ -1,37 +1,8 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% block title %}Northstar CRM{% endblock %}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-<header><div class="bar">
-  <a class="brand" href="{{ url_for('dashboard') }}"><span class="brand-icon">✳</span> Northstar <small>COMMERCE CRM</small></a>
-  <nav>
-    <a href="{{ url_for('dashboard') }}" class="{{ 'on' if request.endpoint=='dashboard' }}">Dashboard</a>
-    <a href="{{ url_for('customers_page') }}" class="{{ 'on' if request.endpoint in ('customers_page','customer_page','export_customers') }}">Customers</a>
-    <a href="{{ url_for('orders_page') }}" class="{{ 'on' if request.endpoint=='orders_page' }}">Orders</a>
-    <a href="{{ url_for('segments_page') }}" class="{{ 'on' if request.endpoint=='segments_page' }}">Segments</a>
-    <a href="{{ url_for('workflows_page') }}" class="{{ 'on' if request.endpoint=='workflows_page' }}">Workflows</a>
-    <a href="{{ url_for('logs_page') }}" class="{{ 'on' if request.endpoint=='logs_page' }}">Activity</a>
-  </nav>
-  <span class="store-pill"><i></i>{{ 'Store connected' if store_connected else 'Setup needed' }}</span>
-  <form method="post" action="{{ url_for('sync') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button>↻ &nbsp;Sync store</button></form>
-</div></header>
-<main>
-{% for cat, msg in get_flashed_messages(with_categories=true) %}
-  <div class="flash {{ cat }}">{{ msg }}</div>
-{% endfor %}
-{% if not store_connected %}<div class="flash info">Connect WooCommerce: copy <code>.env.example</code> to <code>.env</code>, add your REST API read keys, then restart the app.</div>{% endif %}
-{% block content %}{% endblock %}
-</main>
-<script>
-document.querySelectorAll('form[action$="/sync"]').forEach(form=>form.addEventListener('submit',()=>{const b=form.querySelector('button');if(b){b.disabled=true;b.textContent='Syncing…'}}));
-document.querySelectorAll('form[action*="/email"]').forEach(form=>form.addEventListener('submit',e=>{if(!confirm('Send this workflow email to this customer?'))e.preventDefault()}));
-</script>
-</body>
-</html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{% block title %}Northstar CRM{% endblock %}</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}"></head><body>
+<div class="app-shell"><aside class="sidebar"><a class="brand" href="{{ url_for('dashboard') }}"><span class="brand-icon">✳</span><span>northstar<small>COMMERCE CRM</small></span></a>
+<div class="workspace-card"><span class="workspace-mark">N</span><span><b>Northstar Goods</b><small>WooCommerce store</small></span><i class="workspace-caret">⌄</i></div>
+<div class="side-caption">WORKSPACE</div><nav class="side-nav"><a href="{{ url_for('dashboard') }}" class="{{ 'on' if request.endpoint=='dashboard' }}"><span>▦</span>Overview</a><a href="{{ url_for('customers_page') }}" class="{{ 'on' if request.endpoint in ('customers_page','customer_page','export_customers') }}"><span>♙</span>Customers</a><a href="{{ url_for('orders_page') }}" class="{{ 'on' if request.endpoint=='orders_page' }}"><span>▤</span>Orders</a><a href="{{ url_for('segments_page') }}" class="{{ 'on' if request.endpoint=='segments_page' }}"><span>◉</span>Segments</a><a href="{{ url_for('workflows_page') }}" class="{{ 'on' if request.endpoint=='workflows_page' }}"><span>✉</span>Email workflows</a><a href="{{ url_for('logs_page') }}" class="{{ 'on' if request.endpoint=='logs_page' }}"><span>⌁</span>Activity</a></nav>
+<div class="sidebar-bottom"><div class="side-status"><i></i><span><b>{{ 'Store connected' if store_connected else 'Setup needed' }}</b><small>WooCommerce status</small></span></div><div class="profile-card"><span class="profile-avatar">{{ current_user[:1]|upper }}</span><span class="profile-copy"><b>{{ current_user }}</b><small>Administrator</small></span><form method="post" action="{{ url_for('logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="logout-button" title="Sign out" aria-label="Sign out">↪</button></form></div></div>
+</aside><div class="app-main"><header class="topbar"><div><span class="top-eyebrow">NORTHSTAR GOODS</span><div class="top-title">{{ request.endpoint|replace('_',' ')|title }}</div></div><form method="post" action="{{ url_for('sync') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button>↻ &nbsp;Sync store</button></form></header><main class="content-area">
+{% for cat,msg in get_flashed_messages(with_categories=true) %}<div class="flash {{ cat }}">{{ msg }}</div>{% endfor %}{% if not store_connected %}<div class="flash info">Connect WooCommerce in <code>.env</code>, then restart the CRM.</div>{% endif %}{% block content %}{% endblock %}</main></div></div>
+<script>document.querySelectorAll('form[action$="/sync"]').forEach(f=>f.addEventListener('submit',()=>{let b=f.querySelector('button');if(b){b.disabled=true;b.textContent='Syncing…'}}));document.querySelectorAll('form[action*="/email"]').forEach(f=>f.addEventListener('submit',e=>{if(!confirm('Send this workflow email to this customer?'))e.preventDefault()}));</script></body></html>

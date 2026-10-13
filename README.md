@@ -23,7 +23,7 @@ A local Flask + SQLite CRM built from the attached `crm.zip` starter and redesig
 
 2. In WordPress, install/activate WooCommerce, add three test orders, then go to **WooCommerce → Settings → Advanced → REST API → Add key**. Choose **Read** permission for CRM data sync. A test order needs a billing name, email, phone, and address.
 3. Edit `.env`; set `WOO_URL` to your store root URL and paste the consumer key/secret. Keep `.env` private; it is excluded from Git.
-4. Start the CRM with `python app.py` and open `http://127.0.0.1:5000`. Click **Test WooCommerce connection**, then **Sync store**. Customer pages include billing address, phone, order history, spend, and email history.
+4. Start the CRM with `\.venv\Scripts\python.exe app.py` and open `http://127.0.0.1:5000`. On first launch, create an admin username and a password with at least 12 characters. Later visits require login. Click **Test WooCommerce connection**, then **Sync store**. Customer pages include billing address, phone, order history, spend, and email history.
 
 ## Email workflows and webhooks
 

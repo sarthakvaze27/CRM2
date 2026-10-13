@@ -6,9 +6,11 @@ import io
 import json
 import os
 import secrets
+from datetime import timedelta
 
 from dotenv import load_dotenv
 from flask import Flask, abort, flash, redirect, render_template, request, url_for
+from werkzeug.security import check_password_hash, generate_password_hash
 
 load_dotenv()
 
@@ -17,22 +19,84 @@ import mailer  # noqa: E402
 import woo  # noqa: E402
 
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY") or secrets.token_hex(32)
+configured_secret = os.getenv("SECRET_KEY", "").strip()
+app.secret_key = configured_secret if len(configured_secret) >= 32 and not configured_secret.lower().startswith("generate-") else secrets.token_hex(32)
 app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax")
+app.permanent_session_lifetime = timedelta(hours=12)
 db.init()
 
 @app.before_request
-def protect_posts():
-    if request.method == "POST" and request.endpoint != "webhook":
+def protect_app():
+    endpoint = request.endpoint
+    if request.method == "POST" and endpoint != "webhook":
         token = session_token()
         if not hmac.compare_digest(request.form.get("csrf_token", ""), token):
             abort(400, "Your form expired. Refresh and try again.")
+    if endpoint in ("static", "login", "setup", "webhook"):
+        return
+    if not db.admin_count():
+        return redirect(url_for("setup"))
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
 
 def session_token():
     from flask import session
     if "csrf_token" not in session:
         session["csrf_token"] = secrets.token_urlsafe(32)
     return session["csrf_token"]
+
+
+@app.route("/setup", methods=["GET", "POST"])
+def setup():
+    if db.admin_count():
+        return redirect(url_for("login"))
+    if request.method == "POST":
+        username = request.form.get("username", "").strip().lower()
+        password = request.form.get("password", "")
+        confirm = request.form.get("confirm_password", "")
+        if len(username) < 3:
+            flash("Choose a username with at least 3 characters.", "error")
+        elif len(password) < 12:
+            flash("Use a password with at least 12 characters.", "error")
+        elif password != confirm:
+            flash("The passwords do not match.", "error")
+        else:
+            db.create_admin(username, generate_password_hash(password))
+            user = db.admin_by_username(username)
+            session.clear()
+            session.permanent = True
+            session["user_id"] = user["id"]
+            session["username"] = user["username"]
+            flash("Admin account created. Welcome to Northstar CRM.", "ok")
+            return redirect(url_for("dashboard"))
+    return render_template("auth.html", mode="setup")
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if not db.admin_count():
+        return redirect(url_for("setup"))
+    if session.get("user_id"):
+        return redirect(url_for("dashboard"))
+    if request.method == "POST":
+        username = request.form.get("username", "").strip().lower()
+        password = request.form.get("password", "")
+        user = db.admin_by_username(username)
+        if user and check_password_hash(user["password_hash"], password):
+            session.clear()
+            session.permanent = True
+            session["user_id"] = user["id"]
+            session["username"] = user["username"]
+            return redirect(url_for("dashboard"))
+        flash("That username or password didn't match.", "error")
+    return render_template("auth.html", mode="login")
+
+
+@app.post("/logout")
+def logout():
+    session.clear()
+    flash("You have been signed out.", "info")
+    return redirect(url_for("login"))
 
 SYMBOLS = {"USD": "$", "INR": "₹", "EUR": "€", "GBP": "£"}
 
@@ -57,7 +121,8 @@ def fromjson(value):
 def inject():
     return {"template_labels": mailer.LABELS, "csrf_token": session_token(),
             "store_connected": bool(os.getenv("WOO_URL") and os.getenv("WOO_KEY") and os.getenv("WOO_SECRET")),
-            "email_ready": bool(os.getenv("SMTP_USER") and os.getenv("SMTP_PASSWORD"))}
+            "email_ready": bool(os.getenv("SMTP_USER") and os.getenv("SMTP_PASSWORD")),
+            "current_user": session.get("username", "Store admin")}
 
 
 def send_template(customer, order, key):
